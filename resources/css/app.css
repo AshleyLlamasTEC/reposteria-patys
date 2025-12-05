@@ -1,0 +1,45 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Animaciones personalizadas */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.float-animation {
+    animation: float 6s ease-in-out infinite;
+}
+
+.bg-stripes {
+    background-image: linear-gradient(to right, #fbcfe8, #fbcfe8 20px, #ffffff 20px, #ffffff);
+    background-size: 40px 100%;
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Efectos de gradiente animado */
+.animated-gradient {
+    background: linear-gradient(-45deg, #ffb6c1, #ffd700, #98fb98, #87ceeb, #dda0dd);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Mejoras para los componentes de ARK */
+[data-scope='carousel'][data-part='viewport'] {
+    border-radius: 1rem;
+}
+
+[data-scope='carousel'][data-part='slide-group'] {
+    padding: 1rem 0;
+}

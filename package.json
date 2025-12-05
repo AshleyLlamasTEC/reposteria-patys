@@ -1,0 +1,27 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "@headlessui/react": "^1.4.2",
+        "@inertiajs/react": "^1.3.0",
+        "@tailwindcss/forms": "^0.5.3",
+        "@vitejs/plugin-react": "^3.0.0",
+        "autoprefixer": "^10.4.12",
+        "axios": "^1.4.0",
+        "laravel-vite-plugin": "^0.7.3",
+        "postcss": "^8.4.18",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "tailwindcss": "^3.2.1",
+        "vite": "^4.3.0"
+    },
+    "dependencies": {
+        "@ark-ui/react": "^5.29.1",
+        "@internationalized/date": "^3.10.0",
+        "framer-motion": "^12.23.24",
+        "lucide-react": "^0.553.0"
+    }
+}
