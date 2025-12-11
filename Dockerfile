@@ -33,5 +33,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data /var/www/html/storage \
     && chown -R www-data:www-data /var/www/html/bootstrap/cache
 
-# 8. Comando para iniciar Apache (el servidor web)
+# 8. Configuración CRÍTICA: Apache debe apuntar al directorio público de Laravel
+COPY ./docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+# 9. Comando para iniciar Apache (el servidor web)
 CMD ["apache2-foreground"]
