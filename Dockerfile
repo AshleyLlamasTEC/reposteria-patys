@@ -23,15 +23,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 4. Copia todo tu código al contenedor
 COPY . .
 
-# 5. Instala las dependencias de PHP (sin paquetes de desarrollo)
+# 5. Asegurar permisos base para que Composer funcione
+RUN chown -R www-data:www-data /var/www/html
+
+# 6. Instala las dependencias de PHP (sin paquetes de desarrollo)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# 6. Configura permisos para carpetas de Laravel
+# 7. Configura permisos específicos para carpetas de Laravel
 RUN chown -R www-data:www-data /var/www/html/storage \
     && chown -R www-data:www-data /var/www/html/bootstrap/cache
-
-# 7. Expone el puerto 80
-EXPOSE 80
 
 # 8. Comando para iniciar Apache (el servidor web)
 CMD ["apache2-foreground"]
