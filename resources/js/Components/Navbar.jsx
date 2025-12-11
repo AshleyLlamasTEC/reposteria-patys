@@ -29,11 +29,9 @@ const Navbar = () => {
 
     const navItems = [
         { name: 'Inicio', href: '/' },
-        { name: 'Pasteles', href: '/cakes' },
         { name: 'Postres', href: '/desserts' },
-        { name: 'Especiales', href: '/specials' },
         { name: 'Nosotros', href: '/about' },
-        { name: 'Contacto', href: '/contact' }
+        { name: 'Contactanos', href: '/contact' }
     ];
 
     // Datos del carrito con imágenes

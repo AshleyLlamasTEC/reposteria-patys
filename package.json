@@ -22,6 +22,7 @@
         "@ark-ui/react": "^5.29.1",
         "@internationalized/date": "^3.10.0",
         "framer-motion": "^12.23.24",
+        "html5-qrcode": "^2.3.8",
         "lucide-react": "^0.553.0"
     }
 }

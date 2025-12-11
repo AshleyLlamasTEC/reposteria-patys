@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cake, Star, Heart, ShoppingCart, ChevronRight, Play, X } from 'lucide-react';
+import { Cake, Star, Heart, ShoppingCart, ChevronRight, Play, X, Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import Navbar from '@/Components/Navbar';
+import Footer from '@/Components/Footer';
 
 export default function Welcome() {
     const [isCakeDialogOpen, setIsCakeDialogOpen] = useState(false);
@@ -10,7 +11,22 @@ export default function Welcome() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlide, setHeroSlide] = useState(0);
 
-    // Imágenes para el slider del hero (reemplaza estas URLs con tus propias imágenes)
+    // Estado para el formulario de contacto
+    const { data, setData, post, processing, errors, reset } = useForm({
+        nombre: '',
+        email: '',
+        telefono: '',
+        mensaje: '',
+        tipo: 'consulta'
+    });
+
+    // Estado para seguimiento de pedido
+    const [folio, setFolio] = useState('');
+    const [pedidoInfo, setPedidoInfo] = useState(null);
+    const [isLoadingPedido, setIsLoadingPedido] = useState(false);
+    const [pedidoError, setPedidoError] = useState('');
+
+    // Imágenes para el slider del hero
     const heroImages = [
         "/images/hero_slider/1.jpg",
         "/images/hero_slider/2.jpg",
@@ -52,6 +68,7 @@ export default function Welcome() {
         { name: "Coco", emoji: "🥥" }
     ];
 
+    // Funciones existentes
     const openCakeDetails = (cake) => {
         setSelectedCake(cake);
         setIsCakeDialogOpen(true);
@@ -73,6 +90,78 @@ export default function Welcome() {
         setHeroSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
     };
 
+    // Funciones para el formulario de contacto
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        post(route('contacto.enviar'), {
+            onSuccess: () => {
+                reset();
+                alert('Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.');
+            },
+            onError: () => {
+                alert('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo.');
+            }
+        });
+    };
+
+    // Función para buscar pedido por folio
+    const buscarPedido = async () => {
+        if (!folio.trim()) {
+            setPedidoError('Por favor, ingresa un número de folio');
+            return;
+        }
+
+        setIsLoadingPedido(true);
+        setPedidoError('');
+
+        try {
+            // Aquí deberías hacer una petición a tu backend
+            // Esto es un ejemplo con datos simulados
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Datos de ejemplo - reemplaza con tu lógica real
+            const pedidosSimulados = {
+                'ABC123': {
+                    folio: 'ABC123',
+                    cliente: 'Juan Pérez',
+                    fecha: '2024-01-15',
+                    estado: 'En preparación',
+                    productos: [
+                        { nombre: 'Pastel Chocolate', cantidad: 1, precio: 480.00 },
+                        { nombre: 'Galletas Personalizadas', cantidad: 12, precio: 180.00 }
+                    ],
+                    total: 660.00,
+                    entrega: '2024-01-20',
+                    direccion: 'Calle Principal #123, Col. Centro'
+                },
+                'DEF456': {
+                    folio: 'DEF456',
+                    cliente: 'María García',
+                    fecha: '2024-01-10',
+                    estado: 'Entregado',
+                    productos: [
+                        { nombre: 'Cheesecake Frutos Rojos', cantidad: 1, precio: 420.00 }
+                    ],
+                    total: 420.00,
+                    entrega: '2024-01-12',
+                    direccion: 'Av. Reforma #456'
+                }
+            };
+
+            if (pedidosSimulados[folio]) {
+                setPedidoInfo(pedidosSimulados[folio]);
+            } else {
+                setPedidoError('No se encontró un pedido con ese folio');
+                setPedidoInfo(null);
+            }
+        } catch (error) {
+            setPedidoError('Error al buscar el pedido. Intenta de nuevo.');
+            setPedidoInfo(null);
+        } finally {
+            setIsLoadingPedido(false);
+        }
+    };
+
     useEffect(() => {
         const interval = setInterval(nextSlide, 5000);
         return () => clearInterval(interval);
@@ -85,7 +174,7 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="Dulce Tentación - Pastelería Artesanal" />
+            <Head title="Repostería Paty's - Pastelería Artesanal" />
 
             {/* Navbar Integrado */}
             <Navbar />
@@ -109,7 +198,7 @@ export default function Welcome() {
                     </AnimatePresence>
 
                     {/* Overlay para mejor contraste del texto */}
-                    <div className="absolute inset-0 bg-stone-900 bg-opacity-30"></div>
+                    <div className="absolute inset-0 bg-stone-900 bg-opacity-50"></div>
                 </div>
 
                 {/* Controles del Slider Hero */}
@@ -153,7 +242,6 @@ export default function Welcome() {
                             alt="Repostería Patty's"
                             className="w-80 h-80 object-contain"
                             onError={(e) => {
-                                // Fallback si el logo no carga
                                 e.target.style.display = 'none';
                                 const fallback = document.createElement('div');
                                 fallback.className = 'w-12 h-12 flex items-center justify-center';
@@ -194,7 +282,7 @@ export default function Welcome() {
                 </motion.div>
             </section>
 
-            {/* El resto del código permanece igual */}
+            {/* Sección del Catálogo */}
             <section id="catalogo" className="py-20 bg-stripes">
                 <div className="container mx-auto p-4 bg-white rounded-xl">
                     <motion.div
@@ -251,7 +339,7 @@ export default function Welcome() {
                             </motion.div>
                         </div>
 
-                        {/* Controles del Carousel - minimalistas */}
+                        {/* Controles del Carousel */}
                         <button
                             onClick={prevSlide}
                             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white text-pink-600 rounded-full p-3 transition-colors"
@@ -339,107 +427,109 @@ export default function Welcome() {
                 </motion.div>
             </section>
 
-{/* Modal Mejorado */}
-<AnimatePresence>
-    {isCakeDialogOpen && selectedCake && (
-        <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsCakeDialogOpen(false)}
-        >
-            <motion.div
-                className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full mx-auto shadow-2xl"
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex flex-col md:flex-row">
-                    {/* Imagen del pastel */}
-                    <div className="md:w-1/2 bg-gray-100">
-                        <div className="h-64 md:h-full relative">
-                            <img
-                                src={selectedCake.image}
-                                alt={selectedCake.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    const fallback = document.createElement('div');
-                                    fallback.className = 'w-full h-full bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center';
-                                    fallback.innerHTML = '<div class="text-6xl">🎂</div>';
-                                    e.target.parentNode.appendChild(fallback);
-                                }}
-                            />
-                            {/* Badge */}
-                            <div className="absolute top-4 left-4 bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                Más vendido
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Información del pastel */}
-                    <div className="md:w-1/2 p-6 md:p-8">
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-2xl font-bold text-gray-800">
-                                {selectedCake.name}
-                            </h3>
-                            <button
-                                onClick={() => setIsCakeDialogOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <p className="text-gray-600 mb-6">
-                            {selectedCake.description}
-                        </p>
-
-                        {/* Detalles adicionales */}
-                        <div className="space-y-3 mb-6">
-                            <div className="flex items-center gap-2 text-gray-700">
-                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                <span className="text-sm">Disponible para entrega inmediata</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-700">
-                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                <span className="text-sm">Servicio de personalización disponible</span>
-                            </div>
-                        </div>
-
-                        {/* Precio y acciones */}
-                        <div className="border-t border-gray-100 pt-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <div>
-                                    <span className="text-3xl font-bold text-pink-500">
-                                        ${selectedCake.price}
-                                    </span>
-                                    <p className="text-sm text-gray-500">Precio para 10-12 personas</p>
+            {/* Modal Mejorado */}
+            <AnimatePresence>
+                {isCakeDialogOpen && selectedCake && (
+                    <motion.div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsCakeDialogOpen(false)}
+                    >
+                        <motion.div
+                            className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full mx-auto shadow-2xl"
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex flex-col md:flex-row">
+                                {/* Imagen del pastel */}
+                                <div className="md:w-1/2 bg-gray-100">
+                                    <div className="h-64 md:h-full relative">
+                                        <img
+                                            src={selectedCake.image}
+                                            alt={selectedCake.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                const fallback = document.createElement('div');
+                                                fallback.className = 'w-full h-full bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center';
+                                                fallback.innerHTML = '<div class="text-6xl">🎂</div>';
+                                                e.target.parentNode.appendChild(fallback);
+                                            }}
+                                        />
+                                        {/* Badge */}
+                                        <div className="absolute top-4 left-4 bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                            Más vendido
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="border border-gray-300 text-gray-700 w-10 h-10 rounded-full hover:bg-gray-50">
-                                        -
-                                    </button>
-                                    <span className="font-semibold">1</span>
-                                    <button className="border border-gray-300 text-gray-700 w-10 h-10 rounded-full hover:bg-gray-50">
-                                        +
-                                    </button>
+
+                                {/* Información del pastel */}
+                                <div className="md:w-1/2 p-6 md:p-8">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className="text-2xl font-bold text-gray-800">
+                                            {selectedCake.name}
+                                        </h3>
+                                        <button
+                                            onClick={() => setIsCakeDialogOpen(false)}
+                                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    <p className="text-gray-600 mb-6">
+                                        {selectedCake.description}
+                                    </p>
+
+                                    {/* Detalles adicionales */}
+                                    <div className="space-y-3 mb-6">
+                                        <div className="flex items-center gap-2 text-gray-700">
+                                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                            <span className="text-sm">Disponible para entrega inmediata</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-700">
+                                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                            <span className="text-sm">Servicio de personalización disponible</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Precio y acciones */}
+                                    <div className="border-t border-gray-100 pt-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <span className="text-3xl font-bold text-pink-500">
+                                                    ${selectedCake.price}
+                                                </span>
+                                                <p className="text-sm text-gray-500">Precio para 10-12 personas</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button className="border border-gray-300 text-gray-700 w-10 h-10 rounded-full hover:bg-gray-50">
+                                                    -
+                                                </button>
+                                                <span className="font-semibold">1</span>
+                                                <button className="border border-gray-300 text-gray-700 w-10 h-10 rounded-full hover:bg-gray-50">
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button className="w-full bg-pink-400 hover:bg-pink-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors transform hover:scale-[1.02]">
+                                            <ShoppingCart className="w-5 h-5" />
+                                            Agregar al Carrito - ${selectedCake.price}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                            <button className="w-full bg-pink-400 hover:bg-pink-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors transform hover:scale-[1.02]">
-                                <ShoppingCart className="w-5 h-5" />
-                                Agregar al Carrito - ${selectedCake.price}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-        </motion.div>
-    )}
-</AnimatePresence>
+            <Footer />
         </>
     );
 }
