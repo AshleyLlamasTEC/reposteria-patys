@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { Html5Qrcode } from "html5-qrcode";
+
 import {
     Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle,
     QrCode, X, Facebook, Instagram, MessageCircle,
@@ -26,8 +28,80 @@ export default function Contact() {
     const [pedidoError, setPedidoError] = useState('');
 
     // Estado para el scanner QR
-    const [showScanner, setShowScanner] = useState(false);
     const scannerRef = useRef(null);
+    const [showScanner, setShowScanner] = useState(false);
+    const [cameraLoading, setCameraLoading] = useState(false);
+    const qrRegionId = "qr-reader-region";
+
+    const startScanner = async () => {
+        setCameraLoading(true);
+
+        try {
+            const html5QrCode = new Html5Qrcode(qrRegionId);
+
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                alert("No se encontró cámara");
+                setCameraLoading(false);
+                return;
+            }
+
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                },
+                (decodedText) => {
+                    setShowScanner(false);
+                    html5QrCode.stop();
+                    setFolio(decodedText.toUpperCase());
+                    buscarPedido(decodedText.toUpperCase());
+                },
+                (errorMessage) => {
+                    // Errores de lectura repetitivos ignorados
+                }
+            );
+
+        } catch (error) {
+            console.error(error);
+            alert("Hubo un error al iniciar la cámara");
+        } finally {
+            setCameraLoading(false);
+        }
+    };
+
+    const closeScanner = () => {
+        const element = document.getElementById(qrRegionId);
+        if (element) element.innerHTML = ""; // Limpia cámara
+        setShowScanner(false);
+    };
+
+
+    useEffect(() => {
+    if (showScanner && scannerRef.current) {
+        import("html5-qrcode").then(({ Html5Qrcode }) => {
+            const html5QrCode = new Html5Qrcode("qr-reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText) => {
+                    setFolio(decodedText.toUpperCase());
+                    setShowScanner(false);
+                    html5QrCode.stop();
+                    buscarPedido(decodedText);
+                }
+            ).catch(err => {
+                console.error("Error al iniciar QR:", err);
+            });
+        });
+    }
+}, [showScanner]);
+
 
     // Datos de contacto
     const contactInfo = {
@@ -41,17 +115,17 @@ export default function Contact() {
             {
                 nombre: "Facebook",
                 icon: Facebook,
-                href: "https://facebook.com/reposteriapatys",
+                href: "https://www.facebook.com/profile.php?id=100063745980434",
                 color: "hover:bg-blue-600 hover:border-blue-600 hover:text-white",
                 bgColor: "bg-blue-500"
             },
-            {
-                nombre: "Instagram",
-                icon: Instagram,
-                href: "https://instagram.com/reposteriapatys",
-                color: "hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:text-white",
-                bgColor: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500"
-            },
+            // {
+            //     nombre: "Instagram",
+            //     icon: Instagram,
+            //     href: "https://instagram.com/reposteriapatys",
+            //     color: "hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 hover:text-white",
+            //     bgColor: "bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500"
+            // },
             {
                 nombre: "WhatsApp",
                 icon: MessageCircle,
@@ -305,7 +379,8 @@ export default function Contact() {
 
                                         <button
                                             onClick={() => {
-                                                alert('Función de escanear QR disponible próximamente');
+                                                setShowScanner(true);
+                                                setTimeout(() => startScanner(), 300);
                                             }}
                                             className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
                                         >
@@ -512,6 +587,46 @@ export default function Contact() {
             </section>
 
             <Footer />
+
+            {showScanner && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md relative"
+                    >
+                        {/* Cerrar modal */}
+                        <button
+                            onClick={closeScanner}
+                            className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100"
+                        >
+                            <X className="w-5 h-5 text-gray-600" />
+                        </button>
+
+                        <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                            Escanear Código QR
+                        </h2>
+
+                        <p className="text-gray-500 text-sm text-center mb-4">
+                            Enfoca el código QR del pedido para buscarlo automáticamente.
+                        </p>
+
+                        {/* Área donde aparecerá la cámara */}
+                        <div className="mx-auto rounded-lg overflow-hidden border border-gray-300 shadow-md">
+                            <div id={qrRegionId} className="w-full h-72 bg-black"></div>
+                        </div>
+
+                        {/* Loading */}
+                        {cameraLoading && (
+                            <div className="mt-4 flex justify-center">
+                                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
+
+                    </motion.div>
+                </div>
+            )}
         </>
     );
 }

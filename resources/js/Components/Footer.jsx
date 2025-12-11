@@ -10,8 +10,8 @@ export default function Footer() {
     const contactInfo = {
         telefono: "+52 (686) 198 07 66",
         email: "contacto@reposteriapatys.com",
-        facebook: "https://facebook.com/reposteriapatys",
-        instagram: "https://instagram.com/reposteriapatys",
+        facebook: "https://www.facebook.com/profile.php?id=100063745980434",
+        // instagram: "https://instagram.com/reposteriapatys",
         whatsapp: "https://api.whatsapp.com/send?phone=526861980766&text=Hola!"
     };
 
@@ -75,7 +75,7 @@ export default function Footer() {
                                 >
                                     <Facebook className="w-5 h-5" />
                                 </a>
-                                <a
+                                {/* <a
                                     href={contactInfo.instagram}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -87,7 +87,7 @@ export default function Footer() {
                                     "
                                 >
                                     <Instagram className="w-5 h-5" />
-                                </a>
+                                </a> */}
                                 <a
                                     href={`mailto:${contactInfo.email}`}
                                     className="
