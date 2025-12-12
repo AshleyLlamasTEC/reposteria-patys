@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 # 3. Copia e instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 4. Copia todo tu código al contenedor
+# 4. Copia TODO tu código al contenedor
 COPY . .
 
 # 5. Asegurar permisos base para que Composer funcione
@@ -33,10 +33,32 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data /var/www/html/storage \
     && chown -R www-data:www-data /var/www/html/bootstrap/cache
 
-# 8. CONFIGURACIÓN CRÍTICA - Apache debe apuntar a /public
-RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf && \
-    sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf && \
-    sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# 8. CONFIGURACIÓN APACHE MÁS DIRECTA Y SEGURA
+# 8.1 Establece ServerName
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# 8.2 Crea una NUEVA configuración de Apache desde cero
+RUN echo '<VirtualHost *:80>\n\
+    ServerAdmin webmaster@localhost\n\
+    DocumentRoot /var/www/html/public\n\
+    \n\
+    <Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        Options -Indexes +FollowSymLinks\n\
+        DirectoryIndex index.php index.html\n\
+    </Directory>\n\
+    \n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+
+# 8.3 Habilita el sitio
+RUN a2ensite 000-default.conf
+
+# 8.4 Deshabilita configuraciones por defecto conflictivas
+RUN a2dissite 000-default.conf 2>/dev/null || true
+RUN a2ensite 000-default.conf
 
 # 9. Comando para iniciar Apache (el servidor web)
 CMD ["apache2-foreground"]
