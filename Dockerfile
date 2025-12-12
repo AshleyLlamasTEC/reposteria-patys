@@ -55,5 +55,11 @@ RUN echo '<VirtualHost *:80>' > /etc/apache2/sites-available/000-default.conf &&
 # 9. Habilita el sitio
 RUN a2ensite 000-default.conf
 
-# 10. Comando para iniciar Apache (el servidor web)
+# 10. Instalar Node.js y compilar assets de React
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm ci --only=production && \
+    npm run build
+
+# 11. Comando para iniciar Apache (el servidor web)
 CMD ["apache2-foreground"]
