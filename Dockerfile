@@ -1,14 +1,19 @@
-# Dockerfile CORRECTO - React YA está compilado en public/build/
+# Dockerfile CORREGIDO - Con git y unzip para Composer
 FROM php:8.2-apache
 WORKDIR /var/www/html
 
-# 1. Copia TODO (incluyendo public/build/ compilado)
+# 1. Copia TODO
 COPY . .
 
-# 2. Instala SOLO PHP (NO Node.js - React YA compilado)
+# 2. Instala dependencias del sistema INCLUYENDO git y unzip
 RUN apt-get update && apt-get install -y \
-    libpng-dev libonig-dev libxml2-dev libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring gd \
+    git \
+    unzip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring gd zip \
     && a2enmod rewrite
 
 # 3. Instala Composer
