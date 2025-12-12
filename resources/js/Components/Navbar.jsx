@@ -96,7 +96,7 @@ const Navbar = () => {
                             <Cake className="w-8 h-8 text-pink-500 hidden" />
 
                             <div className="flex flex-col">
-                                <span className="text-xl font-bold text-gray-900 tracking-tight">
+                                <span className="text-xs md:text-xl font-bold text-gray-900 tracking-tight">
                                     Repostería
                                 </span>
                                 <span className="text-xs text-pink-500 font-medium tracking-wide">
