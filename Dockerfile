@@ -1,11 +1,11 @@
-# Dockerfile CORREGIDO - Con git y unzip para Composer
+# Dockerfile CORREGIDO - Sintaxis correcta para apt-get
 FROM php:8.2-apache
 WORKDIR /var/www/html
 
 # 1. Copia TODO
 COPY . .
 
-# 2. Instala dependencias del sistema INCLUYENDO git y unzip
+# 2. Instala dependencias del sistema (UNA sola línea RUN)
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
