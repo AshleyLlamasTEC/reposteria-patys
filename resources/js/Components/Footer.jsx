@@ -37,7 +37,7 @@ export default function Footer() {
                             >
                                 <div className="w-12 h-12 relative">
                                     <img
-                                        src="/images/logo.jpg"
+                                        src="/images/logo.png"
                                         alt="Repostería Patty's"
                                         className="w-full h-full object-contain"
                                         onError={(e) => {
