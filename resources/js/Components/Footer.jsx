@@ -247,28 +247,28 @@ export default function Footer() {
                         "></div>
                     </div>
                 </a>
-            </div>
 
-            {/* Botón flotante para subir al inicio */}
-            <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="
-                    fixed bottom-24 right-6 z-40 w-10 h-10 bg-white rounded-full
-                    flex items-center justify-center shadow-lg transition-all duration-300
-                    border border-gray-200 hover:border-pink-300 hover:bg-pink-50
-                    group
-                "
-                aria-label="Subir al inicio"
-            >
-                <svg
-                    className="w-4 h-4 text-gray-600 group-hover:text-pink-500 transition-colors"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {/* Botón flotante para subir al inicio */}
+                <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="
+                        w-14 h-14 bg-white
+                        rounded-full flex items-center justify-center shadow-2xl
+                        hover:shadow-3xl transition-all duration-300 group
+                        hover:scale-110 border border-gray-300
+                    "
+                    aria-label="Subir al inicio"
                 >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-            </button>
+                    <svg
+                        className="w-4 h-4 text-gray-600 group-hover:text-pink-500 transition-colors"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                </button>
+            </div>
         </>
     );
 }

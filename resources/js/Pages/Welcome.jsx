@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cake, Star, Heart, ShoppingCart, ChevronRight, Play, X, Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ShoppingCart, ChevronRight, X, } from 'lucide-react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 
