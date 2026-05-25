@@ -35,10 +35,9 @@ Route::get('/contact', function () {
 //     return Inertia::render('Desserts');
 // })->name('desserts');
 
-Route::get(
-    '/desserts',
-    [DessertController::class, 'index']
-);
+Route::get('/desserts', function () {
+    return Inertia::render('Desserts/Index');
+})->name('desserts.index');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -47,6 +46,20 @@ Route::get('/dashboard', function () {
 Route::get('/about', function () {
     return Inertia::render('About');
 })->name('about');
+
+// routes/web.php
+
+use App\Http\Controllers\CartController;
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'addItem'])->name('cart.add');
+    Route::patch('/cart/{item}', [CartController::class, 'updateItem'])->name('cart.update');
+    Route::delete('/cart/{item}', [CartController::class, 'removeItem'])->name('cart.remove');
+    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+    Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->name('cart.coupon.apply');
+});
 
 
 Route::middleware('auth')->group(function () {
