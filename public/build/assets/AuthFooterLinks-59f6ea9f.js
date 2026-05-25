@@ -1,0 +1,1 @@
+import{a as r,x as s}from"./app-33880e03.js";function a({links:e=[]}){return e.length===0?null:r("div",{className:"mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm",children:e.map((t,n)=>r(s,{href:t.href,className:"text-pink-600 hover:text-pink-800 transition-colors font-medium",children:t.label},n))})}export{a as A};

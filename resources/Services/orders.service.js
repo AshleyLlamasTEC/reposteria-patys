@@ -1,0 +1,1 @@
+export const getStatusColor = (status) => statusColors[status];
