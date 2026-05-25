@@ -1,25 +1,52 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { filterDesserts } from '../utils/dessert.filters';
 import { sortDesserts } from '../utils/dessert.sorter';
 
-export function useDessertFilters(desserts) {
+export function useDessertFilters(initialDesserts = []) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState('popular');
 
-  const filtered = useMemo(() => filterDesserts(desserts, { searchQuery, category: selectedCategory, priceRange }),
-    [desserts, searchQuery, selectedCategory, priceRange]);
+  const desserts = useMemo(() => {
+    return Array.isArray(initialDesserts) ? initialDesserts : [];
+  }, [initialDesserts]);
 
-  const sorted = useMemo(() => sortDesserts(filtered, sortBy), [filtered, sortBy]);
+  const filteredDesserts = useMemo(() => {
+    return filterDesserts(desserts, {
+      searchQuery,
+      category: selectedCategory,
+      priceRange,
+    });
+  }, [desserts, searchQuery, selectedCategory, priceRange]);
+
+  const sortedDesserts = useMemo(() => {
+    return sortDesserts(filteredDesserts, sortBy);
+  }, [filteredDesserts, sortBy]);
+
+  const totalCount = desserts.length;
+  const filteredCount = sortedDesserts.length;
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setPriceRange([0, 1000]);
+    setSortBy('popular');
+  };
 
   return {
-    searchQuery, setSearchQuery,
-    selectedCategory, setSelectedCategory,
-    priceRange, setPriceRange,
-    sortBy, setSortBy,
-    filteredDesserts: sorted,
-    totalCount: desserts.length,
-    filteredCount: sorted.length
+    desserts,
+    filteredDesserts: sortedDesserts,
+    totalCount,
+    filteredCount,
+    searchQuery,
+    selectedCategory,
+    priceRange,
+    sortBy,
+    setSearchQuery,
+    setSelectedCategory,
+    setPriceRange,
+    setSortBy,
+    resetFilters,
   };
 }

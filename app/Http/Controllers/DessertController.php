@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
-
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DessertController extends Controller
@@ -21,9 +21,7 @@ class DessertController extends Controller
         */
 
         $categories = Category::query()
-
             ->active()
-
             ->withCount([
                 'products' => function ($query) {
 
@@ -32,15 +30,10 @@ class DessertController extends Controller
                         ->inStock();
                 }
             ])
-
             ->orderBy('name')
-
             ->get()
-
             ->map(function ($category) {
-
                 return [
-
                     'id' =>
                         $category->id,
 
@@ -63,19 +56,12 @@ class DessertController extends Controller
         */
 
         $desserts = Product::query()
-
             ->with('category')
-
             ->active()
-
             ->inStock()
-
             ->orderByDesc('popular')
-
             ->get()
-
             ->map(function ($product) {
-
                 return [
 
                     'id' =>
@@ -122,6 +108,8 @@ class DessertController extends Controller
                 ];
             });
 
+        Log::info($desserts);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -130,22 +118,16 @@ class DessertController extends Controller
         */
 
         $allCategory = [
-
             'id' => null,
-
             'name' => 'All',
-
             'slug' => 'all',
-
             'count' => $desserts->count(),
         ];
-
 
         $categories = collect([
             $allCategory,
             ...$categories,
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -154,11 +136,8 @@ class DessertController extends Controller
         */
 
         return Inertia::render(
-
             'Desserts/Index',
-
             [
-
                 'desserts' =>
                     $desserts,
 

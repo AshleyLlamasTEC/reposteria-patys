@@ -3,15 +3,24 @@ import { Filter, Sparkles } from "lucide-react";
 import AppSelect from "@/Components/ui/AppSelect";
 
 export default function DessertFilters({
-    categories,
-    selectedCategory,
-    setSelectedCategory,
-    priceRange,
-    setPriceRange,
-    sortBy,
-    setSortBy,
-    onCustomOrder,
+    categories = [],
+    selectedCategory = "all",
+    setSelectedCategory = () => {},
+    priceRange = [0, 1000],
+    setPriceRange = () => {},
+    sortBy = "popular",
+    setSortBy = () => {},
+    onCustomOrder = () => {},
 }) {
+    const safeCategories = Array.isArray(categories) ? categories : [];
+    const safePriceRange = Array.isArray(priceRange) ? priceRange : [0, 1000];
+
+    const handleMaxPriceChange = (e) => {
+        const nextMax = Number(e.target.value);
+
+        setPriceRange([safePriceRange[0], nextMax]);
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -30,22 +39,21 @@ export default function DessertFilters({
                     <h4 className="font-semibold text-gray-700 mb-3">
                         Categorías
                     </h4>
+
                     <div className="space-y-2">
-                        {categories.map((category) => (
+                        {safeCategories.map((category) => (
                             <button
-                                key={category.id}
-                                onClick={() =>
-                                    setSelectedCategory(category.slug)
-                                }
+                                key={category.id ?? category.slug}
+                                onClick={() => setSelectedCategory(category.slug)}
                                 className={`flex justify-between items-center w-full px-3 py-2 rounded-lg transition-all duration-200 text-left ${
-                                    selectedCategory === category.id
+                                    selectedCategory === category.slug
                                         ? "bg-pink-50 text-pink-600 font-semibold"
                                         : "text-gray-600 hover:bg-gray-50"
                                 }`}
                             >
                                 <span>{category.name}</span>
                                 <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                                    {category.count}
+                                    {category.count ?? 0}
                                 </span>
                             </button>
                         ))}
@@ -59,23 +67,20 @@ export default function DessertFilters({
                             Rango de Precio
                         </h4>
                         <span className="text-sm text-pink-600 font-semibold">
-                            ${priceRange[0]} - ${priceRange[1]}
+                            ${safePriceRange[0]} - ${safePriceRange[1]}
                         </span>
                     </div>
+
                     <input
                         type="range"
                         min="0"
                         max="1000"
                         step="50"
-                        value={priceRange[1]}
-                        onChange={(e) =>
-                            setPriceRange([
-                                priceRange[0],
-                                parseInt(e.target.value),
-                            ])
-                        }
+                        value={safePriceRange[1]}
+                        onChange={handleMaxPriceChange}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                     />
+
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>$0</span>
                         <span>$500</span>
@@ -93,30 +98,11 @@ export default function DessertFilters({
                         value={sortBy}
                         onChange={setSortBy}
                         options={[
-                            {
-                                value: "popular",
-                                label: "Más populares",
-                            },
-
-                            {
-                                value: "rating",
-                                label: "Mejor calificación",
-                            },
-
-                            {
-                                value: "price-asc",
-                                label: "Precio: menor a mayor",
-                            },
-
-                            {
-                                value: "price-desc",
-                                label: "Precio: mayor a menor",
-                            },
-
-                            {
-                                value: "new",
-                                label: "Nuevos primero",
-                            },
+                            { value: "popular", label: "Más populares" },
+                            { value: "rating", label: "Mejor calificación" },
+                            { value: "price-asc", label: "Precio: menor a mayor" },
+                            { value: "price-desc", label: "Precio: mayor a menor" },
+                            { value: "new", label: "Nuevos primero" },
                         ]}
                     />
                 </div>

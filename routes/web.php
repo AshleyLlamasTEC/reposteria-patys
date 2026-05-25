@@ -35,9 +35,7 @@ Route::get('/contact', function () {
 //     return Inertia::render('Desserts');
 // })->name('desserts');
 
-Route::get('/desserts', function () {
-    return Inertia::render('Desserts/Index');
-})->name('desserts.index');
+Route::get('/desserts', [DessertController::class, 'index'])->name('desserts.index');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
