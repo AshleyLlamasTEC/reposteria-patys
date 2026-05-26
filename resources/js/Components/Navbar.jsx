@@ -15,6 +15,7 @@ import {
 /* =========================
    Helpers
 ========================= */
+const DEFAULT_IMAGE = "/images/default-cake.jpg";
 
 const NAV_ITEMS = [
     { name: "Inicio", href: "/" },
@@ -197,7 +198,7 @@ const Navbar = () => {
                                                     >
                                                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shadow-md">
                                                             <ImageWithFallback
-                                                                src={item.image || "/placeholder.jpg"}
+                                                                src={item.image ?? DEFAULT_IMAGE}
                                                                 alt={item.name}
                                                                 fallbackColor="bg-amber-800"
                                                             />

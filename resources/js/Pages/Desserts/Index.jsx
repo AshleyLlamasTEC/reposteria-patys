@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 
 import Navbar from "@/Components/Navbar";
 import Footer from "@/Components/Footer";
@@ -106,10 +106,21 @@ export default function Desserts({ desserts = [], categories = [] }) {
     */
 
     const handleAddToCart = (cake) => {
-        alert(
-            `¡${cake.name} agregado al carrito! Total: $${(
-                cake.price * 1
-            ).toFixed(2)}`,
+        router.post(
+            route("cart.add"),
+            {
+                product_id: cake.id,
+                quantity: 1,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    console.log("Producto agregado");
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            },
         );
     };
 
@@ -120,13 +131,24 @@ export default function Desserts({ desserts = [], categories = [] }) {
     */
 
     const handleAddToCartFromModal = (cake) => {
-        alert(
-            `¡${cake.name} agregado al carrito! Total: $${(
-                cake.price * quantity
-            ).toFixed(2)}`,
-        );
+        router.post(
+            route("cart.add"),
+            {
+                product_id: cake.id,
+                quantity,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsCakeDialogOpen(false);
+                    console.log("Producto agregado");
+                },
 
-        setIsCakeDialogOpen(false);
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            },
+        );
     };
 
     /*

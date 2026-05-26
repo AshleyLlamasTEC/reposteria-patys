@@ -1,4 +1,3 @@
--- Evita que el stock se vuelva negativo al actualizar un producto
 DROP TRIGGER IF EXISTS tr_before_update_product;
 DELIMITER $$
 CREATE TRIGGER tr_before_update_product

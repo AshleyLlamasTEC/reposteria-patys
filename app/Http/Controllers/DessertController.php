@@ -108,8 +108,6 @@ class DessertController extends Controller
                 ];
             });
 
-        Log::info($desserts);
-
 
         /*
         |--------------------------------------------------------------------------

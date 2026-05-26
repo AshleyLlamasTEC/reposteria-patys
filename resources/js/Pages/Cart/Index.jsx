@@ -1,26 +1,41 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useMemo } from "react";
+import { Head, Link, router } from "@inertiajs/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    ShoppingBag, Trash2, Plus, Minus, ArrowLeft,
-    ShoppingCart, Tag, Star, Truck, Shield, Heart,
-    ChevronRight, Package, AlertCircle
-} from 'lucide-react';
-import Navbar from '@/Components/Navbar';
-import Footer from '@/Components/Footer';
+    ShoppingBag,
+    Trash2,
+    Plus,
+    Minus,
+    ArrowLeft,
+    ShoppingCart,
+    Tag,
+    Star,
+    Truck,
+    Shield,
+    Heart,
+    ChevronRight,
+    Package,
+    AlertCircle,
+} from "lucide-react";
+import Navbar from "@/Components/Navbar";
+import Footer from "@/Components/Footer";
 
-// ─── Subcomponents ────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const DEFAULT_IMAGE = "/images/default-cake.jpg";
+
+// ─── Subcomponentes ────────────────────────────────────────────────────────
 
 /**
- * @param {{ item: Object, onUpdateQuantity:(id,qty)=>void, onRemove:(id)=>void }} props
+ * Tarjeta de producto en el carrito.
+ * Props normalizadas desde el DTO del backend.
  */
 function CartItem({ item, onUpdateQuantity, onRemove }) {
     const handleImageError = (e) => {
-        e.target.style.display = 'none';
-        const fallback = document.createElement('div');
+        e.target.style.display = "none";
+        const fallback = document.createElement("div");
         fallback.className =
-            'w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center text-3xl flex-shrink-0 border-2 border-gray-100';
-        fallback.innerHTML = '🎂';
+            "w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center text-3xl flex-shrink-0 border-2 border-gray-100";
+        fallback.innerHTML = "🎂";
         e.target.parentNode.appendChild(fallback);
     };
 
@@ -35,19 +50,20 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
         >
             {/* Imagen */}
             <img
-                src={item.image}
+                src={item.image ?? DEFAULT_IMAGE}
                 alt={item.name}
                 onError={handleImageError}
                 className="w-[72px] h-[72px] rounded-2xl object-cover flex-shrink-0 border-2 border-gray-100"
             />
 
-            {/* Info */}
+            {/* Información */}
             <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-gray-800 text-sm truncate">{item.name}</h3>
                 {item.category && (
-                    <p className="text-xs text-gray-400 mt-0.5 mb-2 capitalize">{item.category}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 mb-2 capitalize">
+                        {item.category}
+                    </p>
                 )}
-                {/* Quantity control */}
                 <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                     <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
@@ -68,15 +84,17 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
                 </div>
             </div>
 
-            {/* Price */}
+            {/* Precio y total por línea */}
             <div className="text-right flex-shrink-0">
                 <p className="text-base font-extrabold text-pink-500">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ${(item.unit_price * item.quantity).toFixed(2)}
                 </p>
-                <p className="text-xs text-gray-400">${item.price.toFixed(2)} c/u</p>
+                <p className="text-xs text-gray-400">
+                    ${Number(item.unit_price).toFixed(2)} c/u
+                </p>
             </div>
 
-            {/* Remove */}
+            {/* Eliminar */}
             <button
                 onClick={() => onRemove(item.id)}
                 className="w-8 h-8 rounded-xl border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-red-300 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0"
@@ -88,22 +106,22 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
 }
 
 /**
- * @param {{ subtotal:number, discount:number, total:number, onCheckout:()=>void }} props
+ * Panel de resumen del pedido.
  */
 function OrderSummary({ subtotal, discount, total, onCheckout }) {
     return (
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 sticky top-24">
-            {/* Header */}
             <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-100">
                 <Package className="w-5 h-5 text-pink-500" />
                 <h2 className="font-bold text-gray-800">Resumen del pedido</h2>
             </div>
 
-            {/* Rows */}
             <div className="px-6 py-5 space-y-3">
                 <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
-                    <span className="font-semibold text-gray-800">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800">
+                        ${Number(subtotal).toFixed(2)}
+                    </span>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Envío</span>
@@ -112,7 +130,9 @@ function OrderSummary({ subtotal, discount, total, onCheckout }) {
                 {discount > 0 && (
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Descuento</span>
-                        <span className="font-semibold text-green-500">— ${discount.toFixed(2)}</span>
+                        <span className="font-semibold text-green-500">
+                            — ${discount.toFixed(2)}
+                        </span>
                     </div>
                 )}
 
@@ -121,11 +141,10 @@ function OrderSummary({ subtotal, discount, total, onCheckout }) {
                 <div className="flex justify-between items-center">
                     <span className="text-base font-extrabold text-gray-800">Total</span>
                     <span className="text-2xl font-extrabold text-pink-500">
-                        ${total.toFixed(2)}
+                        ${Number(total).toFixed(2)}
                     </span>
                 </div>
 
-                {/* Checkout button */}
                 <button
                     onClick={onCheckout}
                     className="w-full mt-4 py-4 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-2xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-200 hover:shadow-pink-300 transition-all duration-300 hover:-translate-y-0.5"
@@ -134,9 +153,8 @@ function OrderSummary({ subtotal, discount, total, onCheckout }) {
                     <ChevronRight className="w-5 h-5" />
                 </button>
 
-                {/* Continue shopping */}
                 <Link
-                    href={route('desserts.index')}
+                    href={route("desserts.index")}
                     className="w-full mt-2 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-200"
                 >
                     <ArrowLeft className="w-4 h-4" />
@@ -144,12 +162,12 @@ function OrderSummary({ subtotal, discount, total, onCheckout }) {
                 </Link>
             </div>
 
-            {/* Trust badges */}
+            {/* Sellos de confianza */}
             <div className="grid grid-cols-3 gap-2 px-6 py-4 border-t border-gray-100">
                 {[
-                    { icon: Shield,      label: 'Pago Seguro'     },
-                    { icon: Truck,       label: 'Entrega Rápida'  },
-                    { icon: Heart,       label: 'Hecho con Amor'  }
+                    { icon: Shield, label: "Pago Seguro" },
+                    { icon: Truck, label: "Entrega Rápida" },
+                    { icon: Heart, label: "Hecho con Amor" },
                 ].map(({ icon: Icon, label }) => (
                     <div key={label} className="flex flex-col items-center gap-1.5 text-center">
                         <div className="w-8 h-8 bg-pink-50 rounded-xl flex items-center justify-center">
@@ -163,7 +181,7 @@ function OrderSummary({ subtotal, discount, total, onCheckout }) {
     );
 }
 
-/** Empty cart state */
+/** Estado vacío del carrito */
 function EmptyCart() {
     return (
         <motion.div
@@ -177,7 +195,7 @@ function EmptyCart() {
             <h2 className="text-2xl font-extrabold text-gray-700 mb-2">Tu carrito está vacío</h2>
             <p className="text-gray-400 mb-8">¡Descubre nuestros deliciosos postres artesanales!</p>
             <Link
-                href={route('desserts.index')}
+                href={route("desserts.index")}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-2xl font-bold shadow-lg shadow-pink-200 hover:-translate-y-0.5 hover:shadow-pink-300 transition-all duration-300"
             >
                 <ShoppingBag className="w-5 h-5" />
@@ -187,31 +205,34 @@ function EmptyCart() {
     );
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
+// ─── Componente principal ─────────────────────────────────────────────────
 
-/**
- * Cart page — receives props from Inertia CartController
- *
- * @param {{ items: Object[], cartTotal: number }} props
- */
 export default function CartIndex({ items = [], cartTotal = 0 }) {
     const [cartItems, setCartItems] = useState(items);
-    const [coupon, setCoupon]       = useState('');
-    const [discount, setDiscount]   = useState(0);
+    const [coupon, setCoupon] = useState("");
+    const [discount, setDiscount] = useState(0);
     const [couponMsg, setCouponMsg] = useState(null);
 
-    // ─── Derived values ────────────────────────────────────────────
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const total    = Math.max(0, subtotal - discount);
-
-    // ─── Handlers ──────────────────────────────────────────────────
-    const updateQuantity = (id, qty) => {
-        if (qty < 1) return;
-        setCartItems(prev =>
-            prev.map(item => item.id === id ? { ...item, quantity: qty } : item)
+    // Cálculo del subtotal basado en el estado local (optimista)
+    const subtotal = useMemo(() => {
+        return cartItems.reduce(
+            (sum, item) => sum + (item.unit_price || 0) * (item.quantity || 0),
+            0
         );
-        // Persist via Inertia (optional — comment out if not yet implemented)
-        // router.patch(route('cart.update', id), { quantity: qty }, { preserveScroll: true });
+    }, [cartItems]);
+
+    const total = Math.max(0, subtotal - discount);
+
+    // Handlers
+    const updateQuantity = (id, newQuantity) => {
+        if (newQuantity < 1) return;
+        setCartItems(prev =>
+            prev.map(item =>
+                item.id === id ? { ...item, quantity: newQuantity } : item
+            )
+        );
+        // Sincronizar con backend (descomentar cuando esté listo)
+        // router.patch(route('cart.update', id), { quantity: newQuantity }, { preserveScroll: true });
     };
 
     const removeItem = (id) => {
@@ -225,27 +246,28 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
     };
 
     const applyCoupon = () => {
-        // Placeholder — connect to your backend coupon logic
-        if (coupon.toLowerCase() === 'paty10') {
-            const disc = subtotal * 0.10;
+        if (coupon.trim().toLowerCase() === "paty10") {
+            const disc = subtotal * 0.1;
             setDiscount(disc);
-            setCouponMsg({ type: 'success', text: `¡Cupón aplicado! Ahorraste $${disc.toFixed(2)}` });
+            setCouponMsg({
+                type: "success",
+                text: `¡Cupón aplicado! Ahorraste $${disc.toFixed(2)}`,
+            });
         } else {
-            setCouponMsg({ type: 'error', text: 'Cupón inválido o expirado.' });
+            setCouponMsg({ type: "error", text: "Cupón inválido o expirado." });
         }
     };
 
     const handleCheckout = () => {
-        router.visit(route('checkout.index'));
+        router.visit(route("checkout.index"));
     };
 
-    // ─── Render ────────────────────────────────────────────────────
     return (
         <>
             <Head title="Tu Carrito — Repostería Paty's" />
             <Navbar />
 
-            {/* ── Hero ──────────────────────────────────────────── */}
+            {/* Hero */}
             <section className="pt-32 pb-14 bg-gradient-to-r from-pink-400 to-red-500">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
@@ -257,17 +279,12 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                         <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full backdrop-blur-sm mb-5">
                             <ShoppingCart className="w-10 h-10 text-white" />
                         </div>
-                        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">
-                            Tu Carrito
-                        </h1>
-                        <p className="text-white/85 text-lg">
-                            Revisa y confirma tus productos seleccionados
-                        </p>
-                        {/* Breadcrumb */}
+                        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">Tu Carrito</h1>
+                        <p className="text-white/85 text-lg">Revisa y confirma tus productos seleccionados</p>
                         <nav className="flex items-center justify-center gap-2 mt-4 text-xs text-white/70">
                             <Link href="/" className="hover:text-white transition-colors">Inicio</Link>
                             <span>/</span>
-                            <Link href={route('desserts.index')} className="hover:text-white transition-colors">Postres</Link>
+                            <Link href={route("desserts.index")} className="hover:text-white transition-colors">Postres</Link>
                             <span>/</span>
                             <span className="text-white">Carrito</span>
                         </nav>
@@ -275,32 +292,27 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                 </div>
             </section>
 
-            {/* ── Main ──────────────────────────────────────────── */}
+            {/* Contenido principal */}
             <section className="py-12 bg-gray-50 min-h-[60vh]">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-
                     {cartItems.length === 0 ? (
                         <EmptyCart />
                     ) : (
                         <div className="flex flex-col lg:flex-row gap-8 items-start">
-
-                            {/* ── Items list ──────────────────────── */}
+                            {/* Lista de productos */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
                                 className="flex-1 min-w-0"
                             >
-                                {/* Panel header */}
                                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
                                         <div className="flex items-center gap-2">
                                             <ShoppingBag className="w-5 h-5 text-pink-500" />
-                                            <h2 className="font-bold text-gray-800">
-                                                Productos en tu carrito
-                                            </h2>
+                                            <h2 className="font-bold text-gray-800">Productos en tu carrito</h2>
                                             <span className="bg-pink-50 text-pink-500 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                                                {cartItems.length} {cartItems.length === 1 ? 'artículo' : 'artículos'}
+                                                {cartItems.length} {cartItems.length === 1 ? "artículo" : "artículos"}
                                             </span>
                                         </div>
                                         <button
@@ -312,7 +324,6 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                         </button>
                                     </div>
 
-                                    {/* Items */}
                                     <AnimatePresence mode="popLayout">
                                         {cartItems.map(item => (
                                             <CartItem
@@ -324,7 +335,7 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                         ))}
                                     </AnimatePresence>
 
-                                    {/* Coupon */}
+                                    {/* Cupón */}
                                     <div className="px-6 py-4 border-t border-dashed border-gray-200">
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
@@ -350,7 +361,7 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                                 initial={{ opacity: 0, y: -4 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${
-                                                    couponMsg.type === 'success' ? 'text-green-600' : 'text-red-500'
+                                                    couponMsg.type === "success" ? "text-green-600" : "text-red-500"
                                                 }`}
                                             >
                                                 <AlertCircle className="w-3.5 h-3.5" />
@@ -360,20 +371,19 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                     </div>
                                 </div>
 
-                                {/* Suggested products */}
+                                {/* Sugerencias (placeholder) */}
                                 <div className="mt-8">
                                     <h3 className="text-base font-extrabold text-gray-800 mb-4 flex items-center gap-2">
                                         <Star className="w-5 h-5 text-pink-500 fill-pink-100" />
                                         También te puede gustar
                                     </h3>
-                                    {/* Aquí puedes mapear productos sugeridos del backend */}
                                     <p className="text-sm text-gray-400 italic">
-                                        Conecta con tu controlador para mostrar productos sugeridos.
+                                        Próximamente: productos recomendados.
                                     </p>
                                 </div>
                             </motion.div>
 
-                            {/* ── Order Summary ─────────────────── */}
+                            {/* Resumen de pedido */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -387,7 +397,6 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                     onCheckout={handleCheckout}
                                 />
                             </motion.div>
-
                         </div>
                     )}
                 </div>
