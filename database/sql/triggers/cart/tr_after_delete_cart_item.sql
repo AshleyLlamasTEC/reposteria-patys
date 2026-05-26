@@ -1,14 +1,35 @@
 DROP TRIGGER IF EXISTS tr_after_delete_cart_item;
+
 DELIMITER $$
+
 CREATE TRIGGER tr_after_delete_cart_item
+
 AFTER DELETE ON cart_items
+
 FOR EACH ROW
+
 BEGIN
-    IF EXISTS (SELECT 1 FROM carts WHERE id = OLD.cart_id) THEN
-        UPDATE carts
-        SET total_amount = fn_calculate_cart_total(OLD.cart_id),
-            updated_at = NOW()
-        WHERE id = OLD.cart_id;
-    END IF;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recalcular total del carrito
+    |--------------------------------------------------------------------------
+    */
+
+    UPDATE carts
+
+    SET total_amount = (
+
+        SELECT COALESCE(SUM(subtotal), 0)
+
+        FROM cart_items
+
+        WHERE cart_id = OLD.cart_id
+
+    )
+
+    WHERE id = OLD.cart_id;
+
 END$$
+
 DELIMITER ;

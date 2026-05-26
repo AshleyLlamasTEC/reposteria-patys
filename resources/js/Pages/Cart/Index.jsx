@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ShoppingBag,
@@ -27,9 +27,9 @@ const DEFAULT_IMAGE = "/images/default-cake.jpg";
 
 /**
  * Tarjeta de producto en el carrito.
- * Props normalizadas desde el DTO del backend.
+ * Las actualizaciones y eliminaciones ahora llaman al backend real.
  */
-function CartItem({ item, onUpdateQuantity, onRemove }) {
+function CartItem({ item, onUpdateQuantity, onRemove, isUpdating }) {
     const handleImageError = (e) => {
         e.target.style.display = "none";
         const fallback = document.createElement("div");
@@ -38,6 +38,8 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
         fallback.innerHTML = "🎂";
         e.target.parentNode.appendChild(fallback);
     };
+
+    const quantityDisabled = item.quantity <= 1 || isUpdating;
 
     return (
         <motion.div
@@ -67,7 +69,7 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
                 <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                     <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
+                        disabled={quantityDisabled}
                         className="w-8 h-8 flex items-center justify-center hover:bg-pink-50 hover:text-pink-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         <Minus className="w-3 h-3" />
@@ -77,6 +79,7 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
                     </span>
                     <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        disabled={isUpdating}
                         className="w-8 h-8 flex items-center justify-center hover:bg-pink-50 hover:text-pink-500 transition-colors"
                     >
                         <Plus className="w-3 h-3" />
@@ -97,7 +100,8 @@ function CartItem({ item, onUpdateQuantity, onRemove }) {
             {/* Eliminar */}
             <button
                 onClick={() => onRemove(item.id)}
-                className="w-8 h-8 rounded-xl border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-red-300 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0"
+                disabled={isUpdating}
+                className="w-8 h-8 rounded-xl border-2 border-gray-200 flex items-center justify-center text-gray-400 hover:border-red-300 hover:bg-red-50 hover:text-red-500 transition-all flex-shrink-0 disabled:opacity-50"
             >
                 <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -208,41 +212,66 @@ function EmptyCart() {
 // ─── Componente principal ─────────────────────────────────────────────────
 
 export default function CartIndex({ items = [], cartTotal = 0 }) {
-    const [cartItems, setCartItems] = useState(items);
     const [coupon, setCoupon] = useState("");
     const [discount, setDiscount] = useState(0);
     const [couponMsg, setCouponMsg] = useState(null);
+    const [updatingItems, setUpdatingItems] = useState({}); // IDs que se están actualizando
 
-    // Cálculo del subtotal basado en el estado local (optimista)
+    // Cálculos derivados directamente de las props del backend (fuente de verdad)
     const subtotal = useMemo(() => {
-        return cartItems.reduce(
+        return items.reduce(
             (sum, item) => sum + (item.unit_price || 0) * (item.quantity || 0),
             0
         );
-    }, [cartItems]);
+    }, [items]);
 
     const total = Math.max(0, subtotal - discount);
 
-    // Handlers
-    const updateQuantity = (id, newQuantity) => {
+    // ─── Handlers que interactúan con el backend ─────────────────
+
+    const updateQuantity = (itemId, newQuantity) => {
         if (newQuantity < 1) return;
-        setCartItems(prev =>
-            prev.map(item =>
-                item.id === id ? { ...item, quantity: newQuantity } : item
-            )
+
+        // Marcar este item como "actualizando" para deshabilitar controles
+        setUpdatingItems(prev => ({ ...prev, [itemId]: true }));
+
+        router.patch(
+            route('cart.update', itemId),
+            { quantity: newQuantity },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    setUpdatingItems(prev => ({ ...prev, [itemId]: false }));
+                },
+                onError: () => {
+                    setUpdatingItems(prev => ({ ...prev, [itemId]: false }));
+                    // Opcional: mostrar mensaje de error
+                }
+            }
         );
-        // Sincronizar con backend (descomentar cuando esté listo)
-        // router.patch(route('cart.update', id), { quantity: newQuantity }, { preserveScroll: true });
     };
 
-    const removeItem = (id) => {
-        setCartItems(prev => prev.filter(item => item.id !== id));
-        // router.delete(route('cart.remove', id), { preserveScroll: true });
+    const removeItem = (itemId) => {
+        setUpdatingItems(prev => ({ ...prev, [itemId]: true }));
+
+        router.delete(route('cart.remove', itemId), {
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => {
+                setUpdatingItems(prev => ({ ...prev, [itemId]: false }));
+            },
+            onError: () => {
+                setUpdatingItems(prev => ({ ...prev, [itemId]: false }));
+            }
+        });
     };
 
     const clearCart = () => {
-        setCartItems([]);
-        // router.delete(route('cart.clear'), { preserveScroll: true });
+        router.delete(route('cart.clear'), {
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
     const applyCoupon = () => {
@@ -295,7 +324,7 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
             {/* Contenido principal */}
             <section className="py-12 bg-gray-50 min-h-[60vh]">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    {cartItems.length === 0 ? (
+                    {items.length === 0 ? (
                         <EmptyCart />
                     ) : (
                         <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -312,7 +341,7 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                             <ShoppingBag className="w-5 h-5 text-pink-500" />
                                             <h2 className="font-bold text-gray-800">Productos en tu carrito</h2>
                                             <span className="bg-pink-50 text-pink-500 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                                                {cartItems.length} {cartItems.length === 1 ? "artículo" : "artículos"}
+                                                {items.length} {items.length === 1 ? "artículo" : "artículos"}
                                             </span>
                                         </div>
                                         <button
@@ -325,12 +354,13 @@ export default function CartIndex({ items = [], cartTotal = 0 }) {
                                     </div>
 
                                     <AnimatePresence mode="popLayout">
-                                        {cartItems.map(item => (
+                                        {items.map(item => (
                                             <CartItem
                                                 key={item.id}
                                                 item={item}
                                                 onUpdateQuantity={updateQuantity}
                                                 onRemove={removeItem}
+                                                isUpdating={!!updatingItems[item.id]}
                                             />
                                         ))}
                                     </AnimatePresence>
