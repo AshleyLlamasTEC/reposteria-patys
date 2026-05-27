@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { router } from '@inertiajs/react';
 
 const AdminContext = createContext(null);
 
@@ -9,12 +8,12 @@ export function AdminProvider({ children }) {
 
     useEffect(() => {
         // Verificar si el usuario es admin
-        // Esto debe ajustarse según tu lógica de autenticación
+        // Puedes obtenerlo de las props de Inertia o de un endpoint
         const checkAdminStatus = async () => {
             try {
-                // Aquí iría tu lógica para verificar admin
-                // Por ahora, asumimos que no es admin
-                setIsAdmin(false);
+                // Ejemplo: verificar desde una variable global o props
+                const isUserAdmin = false; // Cambia esto según tu lógica
+                setIsAdmin(isUserAdmin);
             } catch (error) {
                 console.error('Error checking admin status:', error);
                 setIsAdmin(false);
@@ -26,14 +25,8 @@ export function AdminProvider({ children }) {
         checkAdminStatus();
     }, []);
 
-    const value = {
-        isAdmin,
-        loading,
-        // Puedes agregar más funciones aquí
-    };
-
     return (
-        <AdminContext.Provider value={value}>
+        <AdminContext.Provider value={{ isAdmin, loading }}>
             {children}
         </AdminContext.Provider>
     );
@@ -46,3 +39,5 @@ export function useAdmin() {
     }
     return context;
 }
+
+export default AdminProvider;
